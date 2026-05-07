@@ -3,10 +3,18 @@ const app = express();
 const postsRouter = require("./routes/posts");
 const prisma = require("./lib/prisma");
 const authRouter = require("./routes/auth");
+const path = require("path");
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.use(express.static(path.join(__dirname, "..", "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "..", "public", "index.html"));
+});
+
 
 // ROUTES
 app.use("/api/posts", postsRouter);

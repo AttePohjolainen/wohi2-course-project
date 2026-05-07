@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Backend Project Frontend</title>
+</head>
+<body>
+  <h1>Posts</h1>
+
+  <section>
+    <h2>Login</h2>
+    <input id="email" placeholder="Email" value="admin@example.com" />
+    <input id="password" placeholder="Password" value="1234" type="password" />
+    <button id="loginBtn">Login</button>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Create post with image</h2>
+    <input id="title" placeholder="Title" />
+    <input id="date" type="date" />
+    <textarea id="content" placeholder="Content"></textarea>
+    <input id="keywords" placeholder="keywords,comma,separated" />
+    <input id="image" type="file" accept="image/*" />
+    <button id="createBtn">Create</button>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Search</h2>
+    <input id="search" placeholder="keyword" />
+    <button id="searchBtn">Search</button>
+  </section>
+
+  <hr />
+
+  <div id="posts"></div>
+
+  <button id="prevBtn">Previous</button>
+  <span id="pageInfo"></span>
+  <button id="nextBtn">Next</button>
+
+  <script src="/config.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
