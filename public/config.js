@@ -3,7 +3,7 @@ const CONFIG = {
   ROUTES: {
     LOGIN: "/api/auth/login",
     REGISTER: "/api/auth/register",
-    POSTS: "/api/posts",
+    QUESTIONS: "/api/questions",
   },
   POSTS_PER_PAGE: 5,
   STORAGE_KEY: "jwt_token",

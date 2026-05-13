@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const postsRouter = require("./routes/posts");
+const questionsRouter = require("./routes/questions");
 const prisma = require("./lib/prisma");
 const authRouter = require("./routes/auth");
 const path = require("path");
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 
 // ROUTES
 app.use("/api/posts", postsRouter);
+app.use("/api/questions", questionsRouter);
 app.use("/api/auth", authRouter);
 
 // 404 handler

@@ -22,17 +22,17 @@ async function login() {
   if (data.token) {
     localStorage.setItem(CONFIG.STORAGE_KEY, data.token);
     alert("Login successful");
-    loadPosts();
+    loadQuestions();
   } else {
     alert("Login failed");
   }
 }
 
-async function loadPosts() {
+async function loadQuestions() {
   const token = getToken();
 
   const url =
-    `${CONFIG.ROUTES.POSTS}?page=${currentPage}&limit=${CONFIG.POSTS_PER_PAGE}` +
+    `${CONFIG.ROUTES.QUESTIONS}?page=${currentPage}&limit=${CONFIG.POSTS_PER_PAGE}` +
     (currentKeyword ? `&keyword=${currentKeyword}` : "");
 
   const res = await fetch(url, {
@@ -46,52 +46,64 @@ async function loadPosts() {
   const postsDiv = document.getElementById("posts");
   postsDiv.innerHTML = "";
 
-  if (!result.data) {
+  const questions = Array.isArray(result) ? result : result.data;
+
+  if (!questions) {
     postsDiv.innerHTML = `<p>${JSON.stringify(result)}</p>`;
     return;
   }
 
-  result.data.forEach((post) => {
+  questions.forEach((question) => {
     const div = document.createElement("div");
     div.style.border = "1px solid #ccc";
     div.style.padding = "10px";
     div.style.marginBottom = "10px";
 
     div.innerHTML = `
-      <h3>${post.title}</h3>
-      <p><strong>Author:</strong> ${post.userName || "Unknown"}</p>
-      <p>${post.content}</p>
-      <p><strong>Date:</strong> ${post.date}</p>
-      <p><strong>Keywords:</strong> ${post.keywords.join(", ")}</p>
-      <p><strong>Likes:</strong> ${post.likeCount}</p>
-      <p><strong>Liked:</strong> ${post.liked ? "Yes" : "No"}</p>
+      <h3>${question.question}</h3>
+      <p><strong>Author:</strong> ${question.userName || "Unknown"}</p>
+      <p><strong>Date:</strong> ${question.date}</p>
+      <p><strong>Keywords:</strong> ${question.keywords.join(", ")}</p>
+      <p><strong>Solved:</strong> ${question.solved ? "Yes ✅" : "No ❌"}</p>
+
       ${
-        post.imageUrl
-          ? `<img src="${post.imageUrl}" alt="post image" style="max-width:300px;" />`
+        question.imageUrl
+          ? `<img src="${question.imageUrl}" alt="question image" style="max-width:300px;" />`
           : ""
       }
-      <br />
-      <button onclick="likePost(${post.id})">Like</button>
-      <button onclick="unlikePost(${post.id})">Unlike</button>
+
+      <br /><br />
+
+      <input id="answer-${question.id}" placeholder="Your answer" />
+      <button onclick="playQuestion(${question.id})">Submit answer</button>
+
+      <p id="result-${question.id}"></p>
     `;
 
     postsDiv.appendChild(div);
   });
 
-  document.getElementById("pageInfo").textContent =
-    `Page ${result.page} / ${result.totalPages}`;
+  if (result.page) {
+    document.getElementById("pageInfo").textContent =
+      `Page ${result.page} / ${result.totalPages}`;
 
-  document.getElementById("prevBtn").disabled = result.page <= 1;
-  document.getElementById("nextBtn").disabled = result.page >= result.totalPages;
+    document.getElementById("prevBtn").disabled = result.page <= 1;
+    document.getElementById("nextBtn").disabled =
+      result.page >= result.totalPages;
+  } else {
+    document.getElementById("pageInfo").textContent = "";
+    document.getElementById("prevBtn").disabled = true;
+    document.getElementById("nextBtn").disabled = true;
+  }
 }
 
-async function createPost() {
+async function createQuestion() {
   const token = getToken();
 
   const formData = new FormData();
-  formData.append("title", document.getElementById("title").value);
+  formData.append("question", document.getElementById("question").value);
+  formData.append("answer", document.getElementById("answer").value);
   formData.append("date", document.getElementById("date").value);
-  formData.append("content", document.getElementById("content").value);
   formData.append("keywords", document.getElementById("keywords").value);
 
   const image = document.getElementById("image").files[0];
@@ -99,7 +111,7 @@ async function createPost() {
     formData.append("image", image);
   }
 
-  const res = await fetch(CONFIG.ROUTES.POSTS, {
+  const res = await fetch(CONFIG.ROUTES.QUESTIONS, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -110,51 +122,51 @@ async function createPost() {
   const data = await res.json();
   console.log(data);
 
-  loadPosts();
+  loadQuestions();
 }
 
-async function likePost(id) {
+async function playQuestion(id) {
   const token = getToken();
+  const submittedAnswer = document.getElementById(`answer-${id}`).value;
 
-  await fetch(`${CONFIG.ROUTES.POSTS}/${id}/like`, {
+  const res = await fetch(`${CONFIG.ROUTES.QUESTIONS}/${id}/play`, {
     method: "POST",
     headers: {
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
+    body: JSON.stringify({ submittedAnswer }),
   });
 
-  loadPosts();
-}
+  const data = await res.json();
 
-async function unlikePost(id) {
-  const token = getToken();
+  const result = document.getElementById(`result-${id}`);
 
-  await fetch(`${CONFIG.ROUTES.POSTS}/${id}/like`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  if (data.correct) {
+    result.textContent = "Correct ✅";
+  } else {
+    result.textContent = `Wrong ❌ Correct answer: ${data.correctAnswer}`;
+  }
 
-  loadPosts();
+  loadQuestions();
 }
 
 document.getElementById("loginBtn").addEventListener("click", login);
 
-document.getElementById("createBtn").addEventListener("click", createPost);
+document.getElementById("createBtn").addEventListener("click", createQuestion);
 
 document.getElementById("searchBtn").addEventListener("click", () => {
   currentKeyword = document.getElementById("search").value;
   currentPage = 1;
-  loadPosts();
+  loadQuestions();
 });
 
 document.getElementById("prevBtn").addEventListener("click", () => {
   currentPage--;
-  loadPosts();
+  loadQuestions();
 });
 
 document.getElementById("nextBtn").addEventListener("click", () => {
   currentPage++;
-  loadPosts();
+  loadQuestions();
 });

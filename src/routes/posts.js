@@ -1,5 +1,3 @@
-console.log("OIKEA POSTS.JS KÄYTÖSSÄ");
-
 const express = require("express");
 const router = express.Router();
 
