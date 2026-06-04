@@ -25,6 +25,7 @@ model Question {
   answer   String   @db.VarChar(255)
   date     DateTime
   imageUrl String?  @db.VarChar(255)
+    difficulty String @default("easy") @db.VarChar(20)
 
   userId Int
   user   User @relation(fields: [userId], references: [id])

@@ -1,5 +1,6 @@
 let currentPage = 1;
 let currentKeyword = "";
+let currentDifficulty = "";
 
 function getToken() {
   return localStorage.getItem(CONFIG.STORAGE_KEY);
@@ -32,8 +33,9 @@ async function loadQuestions() {
   const token = getToken();
 
   const url =
-    `${CONFIG.ROUTES.QUESTIONS}?page=${currentPage}&limit=${CONFIG.POSTS_PER_PAGE}` +
-    (currentKeyword ? `&keyword=${currentKeyword}` : "");
+  `${CONFIG.ROUTES.QUESTIONS}?page=${currentPage}&limit=${CONFIG.POSTS_PER_PAGE}` +
+  (currentKeyword ? `&keyword=${currentKeyword}` : "") +
+  (currentDifficulty ? `&difficulty=${currentDifficulty}` : "");
 
   const res = await fetch(url, {
     headers: {
@@ -64,6 +66,7 @@ async function loadQuestions() {
       <p><strong>Author:</strong> ${question.userName || "Unknown"}</p>
       <p><strong>Date:</strong> ${question.date}</p>
       <p><strong>Keywords:</strong> ${question.keywords.join(", ")}</p>
+      <p><strong>Difficulty:</strong> ${question.difficulty || "easy"}</p>
       <p><strong>Solved:</strong> ${question.solved ? "Yes ✅" : "No ❌"}</p>
 
       ${
@@ -105,6 +108,7 @@ async function createQuestion() {
   formData.append("answer", document.getElementById("answer").value);
   formData.append("date", document.getElementById("date").value);
   formData.append("keywords", document.getElementById("keywords").value);
+  formData.append("difficulty", document.getElementById("difficulty").value);
 
   const image = document.getElementById("image").files[0];
   if (image) {
@@ -151,9 +155,91 @@ async function playQuestion(id) {
   loadQuestions();
 }
 
+async function loadRandomQuiz() {
+  const token = getToken();
+
+  const res = await fetch(`${CONFIG.ROUTES.QUESTIONS}/quiz/random`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const questions = await res.json();
+
+  const postsDiv = document.getElementById("posts");
+  postsDiv.innerHTML = "<h2>Random Quiz Questions</h2>";
+
+  questions.forEach((question) => {
+    const div = document.createElement("div");
+    div.style.border = "1px solid #ccc";
+    div.style.padding = "10px";
+    div.style.marginBottom = "10px";
+
+    div.innerHTML = `
+      <h3>${question.question}</h3>
+      <p><strong>Author:</strong> ${question.userName || "Unknown"}</p>
+      <p><strong>Date:</strong> ${question.date}</p>
+      <p><strong>Keywords:</strong> ${question.keywords.join(", ")}</p>
+      <p><strong>Difficulty:</strong> ${question.difficulty || "easy"}</p>
+      <p><strong>Solved:</strong> ${question.solved ? "Yes ✅" : "No ❌"}</p>
+
+      <input id="answer-${question.id}" placeholder="Your answer" />
+      <button onclick="playQuestion(${question.id})">Submit answer</button>
+      <p id="result-${question.id}"></p>
+    `;
+
+    postsDiv.appendChild(div);
+  });
+}
+
+async function loadLeaderboard() {
+  const token = getToken();
+
+  const res = await fetch("/api/leaderboard", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const leaderboard = await res.json();
+
+  const leaderboardDiv = document.getElementById("leaderboard");
+
+  leaderboardDiv.innerHTML = "<h3>Leaderboard - Top 5 users</h3>";
+
+  if (!Array.isArray(leaderboard) || leaderboard.length === 0) {
+    leaderboardDiv.innerHTML += "<p>No correct answers yet.</p>";
+    return;
+  }
+
+  const list = document.createElement("ol");
+
+  leaderboard.forEach((entry) => {
+    const item = document.createElement("li");
+    item.textContent = `${entry.name} - ${entry.correctAnswers} correct answers`;
+    list.appendChild(item);
+  });
+
+  leaderboardDiv.appendChild(list);
+}
+
 document.getElementById("loginBtn").addEventListener("click", login);
 
 document.getElementById("createBtn").addEventListener("click", createQuestion);
+
+document
+  .getElementById("randomQuizBtn")
+  .addEventListener("click", loadRandomQuiz);
+
+document
+  .getElementById("leaderboardBtn")
+  .addEventListener("click", loadLeaderboard);
+
+document.getElementById("difficultyFilterBtn").addEventListener("click", () => {
+  currentDifficulty = document.getElementById("difficultyFilter").value;
+  currentPage = 1;
+  loadQuestions();
+});
 
 document.getElementById("searchBtn").addEventListener("click", () => {
   currentKeyword = document.getElementById("search").value;

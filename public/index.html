@@ -22,6 +22,14 @@
     <input id="answer" placeholder="Correct answer" />
     <input id="date" type="date" />
     <input id="keywords" placeholder="keywords,comma,separated" />
+
+    <label for="difficulty">Difficulty:</label>
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+
     <input id="image" type="file" accept="image/*" />
     <button id="createBtn">Create</button>
   </section>
@@ -32,6 +40,25 @@
     <h2>Search</h2>
     <input id="search" placeholder="keyword" />
     <button id="searchBtn">Search</button>
+
+    <h3>Filter by difficulty</h3>
+    <select id="difficultyFilter">
+      <option value="">All difficulties</option>
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="difficultyFilterBtn">Filter</button>
+  </section>
+
+  <hr />
+
+  <section>
+    <h2>Project Step 8 Improvements</h2>
+    <button id="randomQuizBtn">Load 10 Random Questions</button>
+    <button id="leaderboardBtn">Show Leaderboard</button>
+
+    <div id="leaderboard"></div>
   </section>
 
   <hr />

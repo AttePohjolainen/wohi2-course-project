@@ -4,6 +4,7 @@ const path = require("path");
 const postsRouter = require("./routes/posts");
 const questionsRouter = require("./routes/questions");
 const authRouter = require("./routes/auth");
+const leaderboardRouter = require("./routes/leaderboard");
 
 const errorHandler = require("./middleware/errorHandler");
 
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 app.use("/api/posts", postsRouter);
 app.use("/api/questions", questionsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/leaderboard", leaderboardRouter);
 
 // 404 handler
 app.use((req, res) => {

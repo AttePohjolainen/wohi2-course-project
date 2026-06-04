@@ -74,8 +74,17 @@ function formatQuestion(question) {
 }
 
 // GET ALL QUESTIONS
+// Improvement: questions can now be filtered by difficulty:
+// /api/questions?difficulty=easy
 router.get("/", async (req, res) => {
+  const { difficulty } = req.query;
+
+  const where = difficulty
+    ? { difficulty: String(difficulty) }
+    : {};
+
   const questions = await prisma.question.findMany({
+    where,
     include: {
       keywords: true,
       user: true,
@@ -93,9 +102,29 @@ router.get("/", async (req, res) => {
   res.json(questions.map(formatQuestion));
 });
 
+// RANDOM QUIZ
+// Improvement: returns up to 10 random questions from the database
+router.get("/quiz/random", async (req, res) => {
+  const allQuestions = await prisma.question.findMany({
+    include: {
+      keywords: true,
+      user: true,
+      attempts: {
+        where: {
+          userId: req.user.userId || req.user.id,
+        },
+      },
+    },
+  });
+
+  const shuffled = allQuestions.sort(() => 0.5 - Math.random());
+
+  res.json(shuffled.slice(0, 10).map(formatQuestion));
+});
+
 // CREATE QUESTION
 router.post("/", upload.single("image"), async (req, res) => {
-  const { question, answer, date, keywords } = req.body;
+  const { question, answer, date, keywords, difficulty } = req.body;
 
   const imageUrl = req.file
     ? `/uploads/${req.file.filename}`
@@ -107,6 +136,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       answer,
       date: date ? new Date(date) : new Date(),
       imageUrl,
+      difficulty: difficulty || "easy",
 
       userId: req.user.userId || req.user.id,
 
